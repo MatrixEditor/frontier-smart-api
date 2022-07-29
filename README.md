@@ -41,7 +41,7 @@ In order to use the tools provided by this repository, almost all available firm
 ---
 ## Documents
 
-A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [`api-2.0`](api-2.0.md) and to view the research on gathering the compression algorithm used to compress the main filesystem, take a look at the [`compression-2.0`](compresion-2.0.md) document (*`under preparation`*).
+A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [`api-2.0`](docs/api-2.0.md) and to view the research on gathering the compression algorithm used to compress the main filesystem, take a look at the [`compression-2.0`](docs/compresion-2.0.md) document (*`under preparation`*).
 
 ## Overview
 ---
