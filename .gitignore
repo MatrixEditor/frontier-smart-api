@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# APK files
+*.apk
+
 # C extensions
 *.so
 
