@@ -43,6 +43,16 @@ In order to use the tools provided by this repository, almost all available firm
 
 A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [`api-2.0`](docs/api-2.0.md) and to view the research on gathering the compression algorithm used to compress the main filesystem, take a look at the [`compression-2.0`](docs/compresion-2.0.md) document (*`under preparation`*).
 
+**Important Notice**: The `fisu` module is deprecated and should not be used. All functionalities were ported to the `isu` sub-module of `fsapi` and can be imported as follows:
+
+```python
+from fsapi.isu import *
+
+inspector = ISUInspector.getInstance('mmi')
+```
+
+By now, only `mmi` (Multi Media Interface) and `cui` (?) are implemented. Note that firmware binaries from `cui` modules are encrypted, so only the header can be extracted.
+
 ## Overview
 ---
 
