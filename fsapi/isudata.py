@@ -8,7 +8,7 @@ import fsapi
 ###############################################################################
 
 ISU_FILE_PROVIDER_HOST = 'update.wifiradiofrontier.com'
-
+# https://nuv-isu-cdn.azureedge.net/srupdates/srupdates/ir-cui-FS2340-0000-0146/ir-cui-FS2340-0000-0146_V4.5.13.707296-1A20.isu.bin
 ISU_REQUEST_HEADERS = {
   'User-Agent': "FSL IR/0.1",
   'Connection': "Close"
