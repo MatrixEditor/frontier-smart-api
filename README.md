@@ -8,7 +8,7 @@
 ![LastEdit](https://img.shields.io:/static/v1?label=LastEdit&message=07/29/2022&color=9cf)
 ![Status](https://img.shields.io:/static/v1?label=Status&message=LAST-STAGE&color=grey)
 ![Platform](https://img.shields.io:/static/v1?label=Platforms&message=Linux|Windows&color=yellowgreen)
-![Docs](https://img.shields.io:/static/v1?label=Docs&message=stable&color=green)
+[![Documentation Status](https://readthedocs.org/projects/frontier-smart-api/badge/?version=latest)](https://frontier-smart-api.readthedocs.io/en/latest/?badge=latest)
 
 
 This repository contains different tools written in `python3` to examine properties of firmware binaries provided by Frontier Silicon (former Frontier Smart - FS) and to interact with the inbuild API. 
