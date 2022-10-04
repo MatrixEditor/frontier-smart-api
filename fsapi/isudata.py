@@ -31,7 +31,8 @@ To interact with the underlaying API, the isudata-module comes with two main-met
 import urllib3
 import re
 import xml.etree.ElementTree as xmltree
-import fsapi
+
+from .netconfig import FSNetConfiguration
 
 __all__ = [
   "ISU_FILE_PROVIDER_HOST", "ISUSoftwareElement", "isu_find_update",
@@ -119,7 +120,7 @@ def _url_find_update_add_parameters(url: str, parameters: dict) -> str:
 
 def isu_find_update(mac: str, customisation: str, version: str, 
                     verbose: bool = False, 
-                    netconfig: fsapi.FSNetConfiguration = None) -> dict:
+                    netconfig: FSNetConfiguration = None) -> dict:
   '''Tries to find updates for the given version and customisation.
   
   :param mac: The MAC-Address string of a frontier silicon device in the following 
@@ -205,7 +206,7 @@ def isu_find_update(mac: str, customisation: str, version: str,
 
 def isu_get_update(path: str, url: str = None, software: ISUSoftwareElement = None,
                    verbose: bool = False,
-                   netconfig: fsapi.FSNetConfiguration = None):
+                   netconfig: FSNetConfiguration = None):
   '''Tries to download and save the firmware binary located at the given URL.
 
   :param path: an absolute or relative path to the output file

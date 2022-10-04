@@ -8,6 +8,8 @@
 ![LastEdit](https://img.shields.io:/static/v1?label=LastEdit&message=07/29/2022&color=9cf)
 ![Status](https://img.shields.io:/static/v1?label=Status&message=LAST-STAGE&color=grey)
 ![Platform](https://img.shields.io:/static/v1?label=Platforms&message=Linux|Windows&color=yellowgreen)
+![Docs](https://img.shields.io:/static/v1?label=Docs&message=stable&color=green)
+
 
 This repository contains different tools written in `python3` to examine properties of firmware binaries provided by Frontier Silicon (former Frontier Smart - FS) and to interact with the inbuild API. 
 
@@ -41,7 +43,7 @@ In order to use the tools provided by this repository, almost all available firm
 ---
 ## Documents
 
-A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [`api-2.0`](docs/api-2.0.md) and to view the research on gathering the compression algorithm used to compress the main filesystem, take a look at the [`compression-2.0`](docs/compresion-2.0.md) document (*`under preparation`*).
+A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [frontier-smart-api documentation](https://frontier-smart-api.readthedocs.io/).
 
 **Important Notice**: The `fisu` module is deprecated and should not be used. All functionalities were ported to the `isu` sub-module of `fsapi` and can be imported as follows:
 
