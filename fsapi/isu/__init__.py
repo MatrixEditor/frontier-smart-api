@@ -19,6 +19,31 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+__doc__ = '''
+The ISU module (renamed from 'fisu') now located in the `fsapi` python module
+contains an API for inspecting Frontier Smart's update binaries.
+
+By default, update binaries from `mmi` and `cui` interfaces can be inspected by
+retrieving their **ISUInspector** instance. Own implementations can be registered 
+via calling ``@set_inspector(name)``::
+
+    from fsapi.isu import *
+    
+    @set_inspector("myname")
+    class MyInspector(ISUInspector):
+      # ...
+
+Instances of the ``ISUInspector`` should be able to
+
+* read and extract ``ISUHeader`` objects from a given buffer,
+* read and extract ``ISUPartition`` objects,
+* and optionally read and extract a stored directory archive
+
+Additionally, this module contains a `Tree` implementation in ``FSFSFile`` (Frontier
+Smart File System File). It is mainly used to store the extracted data in the XML-
+Format. Some usage examples can be viewed in the newer version of the `isu_inspector`
+tool. 
+'''
 
 __version__ = "0.1.8"
 __author__ = "MatrixEditor"

@@ -27,9 +27,9 @@ from .. import (
   ISU_MAGIC_BYTES,
   ISUFile,
   ISUHeader,
-  FSCutomisation,
+  FSCustomisation,
   FSVersion,
-  SetInspector
+  set_inspector
 )
 
 from ..ioutils import *
@@ -38,7 +38,7 @@ __all__ = [
   'CUIInspector'
 ]
 
-@SetInspector('cui')
+@set_inspector('cui')
 class CUIInspector(ISUInspector):
 
   def get_header(self, buffer: ISUFile, offset: int = 0, **kwgs) -> ISUHeader:
@@ -66,7 +66,7 @@ class CUIInspector(ISUInspector):
       print("  - MeOS Version: %d" % (header.meos_version))
 
     fsv = FSVersion()
-    fsc = FSCutomisation()
+    fsc = FSCustomisation()
 
     index += 4
     index, fsv_name = self._get_header_name(buffer, index)

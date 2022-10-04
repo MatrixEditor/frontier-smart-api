@@ -1,7 +1,42 @@
+# MIT License
+
+# Copyright (c) 2022 MatrixEditor
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+__doc__ = '''
+The backend used to find and download updates is located at ``update.wifiradiofrontier.com.``
+To interact with the underlaying API, the isudata-module comes with two main-methods:
+
+* ``isu_find_update`` and
+* ``isu_get_update``.
+
+'''
+
 import urllib3
 import re
 import xml.etree.ElementTree as xmltree
 import fsapi
+
+__all__ = [
+  "ISU_FILE_PROVIDER_HOST", "ISUSoftwareElement", "isu_find_update",
+  "isu_get_update"
+]
 
 ###############################################################################
 # Constants
@@ -29,6 +64,19 @@ RE_FS_CUSTOMISATION = r"\w*-\w*-FS\d{4}(-\d{4}){2}"
 ###############################################################################
 
 class ISUSoftwareElement:
+  '''This class contains all information needed to distinguish an update entry. 
+  
+  Use the ``loadxml`` function to import data from an XML-Element.
+
+  :param customisaton: The customisation string for this element.
+  :param version: The version string for this element.
+  :param download_url: The URL where the firmware binary is located
+  :param mandatory: Indicates whether this update is mandatory
+  :param md5hash: The calculated md5Hash for the firmware binary
+  :param product: The product's name
+  :param vendor: usually Frontier Smart
+  :param size: the file's size
+  '''
   def __init__(self, customisation: str = None, version: str = None,
                download_url: str = None, mandatory: bool = False,
                md5hash: str = None, product: str = None, size: int = 0,
@@ -49,6 +97,7 @@ class ISUSoftwareElement:
     )
 
   def loadxml(self, element: xmltree.Element):
+    '''Imports data from the given XML-Element.'''
     if not element: return
     self.customisation = element.get('customisation')
     self.version = element.get('version')
@@ -71,6 +120,27 @@ def _url_find_update_add_parameters(url: str, parameters: dict) -> str:
 def isu_find_update(mac: str, customisation: str, version: str, 
                     verbose: bool = False, 
                     netconfig: fsapi.FSNetConfiguration = None) -> dict:
+  '''Tries to find updates for the given version and customisation.
+  
+  :param mac: The MAC-Address string of a frontier silicon device in the following 
+              format: ``002261xxxxxx``. This string must start with ``002261``.
+  :param customisation: Information about the used interface, module and version 
+                        number.
+  :param version: As the name already states, the full version string.
+  :param verbose: if enabled/True, error messages will be printed to stdout
+  :param netconfig: if a custom configuration like a proxy should be used, this 
+                    object can be passed as a parameter
+
+  :returns: ``None`` if an error occurred or a dictionary with the following structure 
+            if one ore more updates are present::
+
+              return {
+                'update_present': bool,
+                'headers': dict,
+                'updates': list[ISUSoftwareElement]
+              }
+  '''
+  
   if not re.match(RE_FSIR_MAC_ADDR, mac):
     if verbose: print("[-] Failed to find an update: malformed MAC-Address")
     return None
@@ -136,6 +206,18 @@ def isu_find_update(mac: str, customisation: str, version: str,
 def isu_get_update(path: str, url: str = None, software: ISUSoftwareElement = None,
                    verbose: bool = False,
                    netconfig: fsapi.FSNetConfiguration = None):
+  '''Tries to download and save the firmware binary located at the given URL.
+
+  :param path: an absolute or relative path to the output file
+  :param url: optional the direct download link - if not set, the software parameter 
+              must be defined
+  :param software: the software object containing the relevant data for downloading
+                   the update file
+  :param verbose: if enabled/True, error messages will be printed to stdout
+  :param netconfig: if a custom configuration like a proxy should be used, this object
+                    can be passed as a parameter
+  '''
+
   if not url and (not software or not software.download_url):
     if verbose: print("[-] Invalid choice of parameters: either url or software has to be nonnull")
     return
@@ -158,10 +240,3 @@ def isu_get_update(path: str, url: str = None, software: ISUSoftwareElement = No
     for chunk in response.stream(4096*16):
       if chunk: _res.write(chunk)
   response.release_conn()
-
-
-  
-  
-  
-  
-  

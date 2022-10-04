@@ -21,11 +21,13 @@
 # SOFTWARE.
 
 from typing import overload
+
+from fsapi.isu.product import FSCustomisation, FSVersion
 from .fsfs import FSFSTree, FSFSFile
 
 __all__ = [
   "ISUFile", "ISUInspector", "ISUCompressionField", "ISUHeader",
-  "ISU_MAGIC_BYTES", "SetInspector"
+  "ISU_MAGIC_BYTES", "set_inspector", "ISUPartition"
 ]
 
 ISU_MAGIC_BYTES = [0x76, 0x11, 0x00, 0x00]
@@ -82,11 +84,12 @@ class ISUCompressionField:
     raise NotImplementedError()
 
 class ISUHeader:
-  def __init__(self) -> None:
-    self._meos_version = 0
-    self._version = None
-    self._customisation = None
-    self._size = -1
+  def __init__(self, meos_version: int = 0, version: FSVersion = None,
+               customisation: FSCustomisation = None, size: int = -1) -> None:
+    self._meos_version = meos_version
+    self._version = version
+    self._customisation = customisation
+    self._size = size
   
   @property
   def meos_version(self) -> int:
@@ -107,6 +110,39 @@ class ISUHeader:
   def __repr__(self) -> str:
     return '<ISUHeader size=%d>' % self.size
 
+class ISUPartition:
+  ENTRY_END = 1
+  ENTRY_PT = 0
+
+  PT_10_CRC = (0x06, 0x02, 0x1F, 0x2B)
+  PT_20_CRC = (0x0A, 0x02, 0x7E, 0xDB)
+
+  def __init__(self, number: int = -1, entry_type: int = 0) -> None:
+    self._number = number
+    self._type = entry_type
+
+  @property
+  def partition(self) -> int:
+    return self._number
+
+  @partition.setter
+  def partition(self, value: int):
+    self._number = value
+
+  def get_crc(self) -> frozenset:
+    if self.partition == 1:
+      return ISUPartition.PT_10_CRC
+    elif self.partition == 2:
+      return ISUPartition.PT_20_CRC
+    else:
+      return ()
+  
+  def is_web_partition(self) -> bool:
+    return self.partition == 2
+
+  def __repr__(self) -> str:
+    return '<Partition %d: web=%s>' % (self.partition, self.is_web_partition())
+
 INSPECTOR_TABLE = {}
 
 class ISUInspector:
@@ -124,7 +160,10 @@ class ISUInspector:
   def get_compression_fields(self, buffer: ISUFile, offset: int = 0, **kwgs) -> list:
     pass
 
-def SetInspector(name: str):
+  def get_partitions(self, buffer: ISUFile, **kwgs) -> list:
+    pass
+
+def set_inspector(name: str):
   def add_inspector(insp):
     if name not in INSPECTOR_TABLE:
       INSPECTOR_TABLE[name] = insp

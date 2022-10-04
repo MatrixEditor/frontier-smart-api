@@ -19,10 +19,27 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+__doc__ = '''
+In order to store and identify each part of the firmware-version and -customisation 
+string, the classes ``FSCustomisation`` and ``FSVersion`` were created. Additionally,
+there are two RegEx-strings that are used to verify the given verison or customisation
+string::
+
+  # e.g. ir-mmi-FS2026-0500-0015
+  RE_CUSTOMISATION = r"^\w*-\w*-(FS\d{4})-\d{4}-\d{4}"
+  
+  # e.g. 2.6.17c4.EX53330-V1.08
+  RE_VERSION = r"^\d*([.][\d]*\w*\d*){2}[.].*-.*"
+
+Both classes mentioned above can be created with and without their attributes. To load
+a verison or customisation string, you can use the ``loads()`` method in both classes.
+'''
+
+
 import re
 
 __all__ = [
-  "FSCutomisation", "FSVersion", "RE_CUSTOMISATION", "RE_VERSION",
+  "FSCustomisation", "FSVersion", "RE_CUSTOMISATION", "RE_VERSION",
   "FSVERSION_MODULE_TYPES"
 ]
 
@@ -40,7 +57,7 @@ FSVERSION_MODULE_TYPES = {
   'FS2230': 'Tuscany'
 }
 
-class FSCutomisation:
+class FSCustomisation:
   def __init__(
     self,
     device_type: str = None,

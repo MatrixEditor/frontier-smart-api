@@ -27,12 +27,13 @@ from .. import (
   ISUInspector, 
   ISUFile, 
   ISUCompressionField,
-  ISUHeader, 
+  ISUHeader,
+  ISUPartition, 
   ISU_MAGIC_BYTES,
-  FSCutomisation,
+  FSCustomisation,
   FSVersion,
   FSFSTree,
-  SetInspector
+  set_inspector
 )
 
 from ..ioutils import *
@@ -43,8 +44,9 @@ __all__ = [
 
 MMI_HEADER_LENGTH = 124
 MMI_BUF_SIZE_INDICATOR   = [0x20, 0x00, 0x00, 0x53]
+MMI_PARTITION_INDICATOR  = [0x05, 0x00, 0x10, 0x00]
 
-@SetInspector("mmi")
+@set_inspector("mmi")
 class MMIInspector(ISUInspector):
 
   def get_header(self, buffer: ISUFile, offset: int = 0, **kwgs) -> ISUHeader:
@@ -67,12 +69,12 @@ class MMIInspector(ISUInspector):
       return header
     
     index += 4
-    header.meos_version = to_ui32(buffer, index)
+    header._meos_version = to_ui32(buffer, index)
     if verbose:
       print("  - MeOS Version: %d" % (header.meos_version))
 
     fsv = FSVersion()
-    fsc = FSCutomisation()
+    fsc = FSCustomisation()
 
     index += 4
     index, fsv_name = self._get_header_name(buffer, index)
@@ -84,8 +86,8 @@ class MMIInspector(ISUInspector):
         print("  - Version: '%s'" % str(fsv))
         print("     | SDK Version: %s" % (fsv.sdk_version))
         print("     | Revision: %s" % (fsv.revision))
-        print("     | Branch: %s\n" % (fsv.branch))
-        print("\n  - Customisation: '%s'" % str(fsc))
+        print("     | Branch: %s" % (fsv.branch))
+        print("  - Customisation: '%s'" % str(fsc))
         print("     | DeviceType: %s" % ('internet radio' if fsc.device_type == 'ir' else fsc.device_type))
         print("     | Interface: %s" % ('multi media interface' if fsc.interface == 'mmi' else fsc.interface))
         print("     | Module: %s (version=%s)\n" % (fsc.get_module_name(), fsc.module_version))
@@ -215,7 +217,15 @@ class MMIInspector(ISUInspector):
     verbose = 'verbose' in kwgs and kwgs['verbose']
     fields = []
 
+    if verbose: print("[+] Declared Fields:")
+    # NOTE: The index can not be static due to the fact that the declared 
+    # fields' position is changing dynamically in the 0200 firmware files.
     index = 2768
+    pos = re.search(b'DecompBuffer', buffer._file)
+    if not pos:
+      return fields
+
+    index = pos.span()[0] - 8
     while True:
       index, success = verify_skip(
         skip(buffer, index, MMI_BUF_SIZE_INDICATOR),
@@ -260,4 +270,58 @@ class MMIInspector(ISUInspector):
         break
     
     return fields
+    
+  def get_partitions(self, buffer: ISUFile, **kwgs) -> list:
+    verbose = 'verbose' in kwgs and kwgs['verbose']
+    partitions = []
+
+    current = 0
+    index = MMI_HEADER_LENGTH
+    while True:
+      index, success = verify_skip(
+        skip(buffer, index, MMI_PARTITION_INDICATOR),
+        '[-] Malformed sys-entry: signature not found',
+        verbose
+      )
+      if not success: return partitions
+
+      part = ISUPartition()
+      initial_value = buffer[index]
+      part.partition = initial_value >> 4
+      index += 2
+      next_skip = []
+
+      if part.partition == current + 1:
+        part._type = ISUPartition.ENTRY_PT
+      else:
+        part._type = ISUPartition.ENTRY_END
+
+      next_skip += [0x0A, 0x00, 0x00, 0xB0 | current*4, 0x0A, 0x00]
+      index, success = verify_skip(
+        skip(buffer, index, next_skip),
+        "[-] Malformed sys-entry: could not skip pattern", 
+        verbose
+      )
+      if not success: return partitions
+
+      crc = part.get_crc()
+      if len(crc) != 0:
+        index, success = verify_skip(
+          skip(buffer, index, crc),
+          "[-] Malformed sys-entry: could not skip pattern", 
+          verbose
+        )
+        if not success: return partitions
+
+      else:
+        entry_crc = buffer[index]
+        if entry_crc != initial_value - 2:
+          if verbose: print("[-] Malformed sys-entry: could not verify entry")
+          return partitions
+      
+      partitions.append(part)
+      current += 1
+      if len(crc) == 0:
+        break
+    return partitions
     
