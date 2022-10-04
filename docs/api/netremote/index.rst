@@ -8,6 +8,7 @@ NetRemote API
 
 .. toctree:: 
   :caption: Module Contents:
+  :maxdepth: 1
 
   basenode
   radiohttp

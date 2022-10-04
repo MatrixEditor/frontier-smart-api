@@ -8,6 +8,7 @@ ISU -- Binary file inspector
 
 .. toctree:: 
   :caption: Module Contents:
+  :maxdepth: 1
 
   ioutils
   fsfs
