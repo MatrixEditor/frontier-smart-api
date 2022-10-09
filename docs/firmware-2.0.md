@@ -1,10 +1,12 @@
-# In-Depth Analysis of firmware binaries from Frontier Silicon
+# In-Depth Analysis of firmware binaries from Frontier Smart
 
 ![LastEdit](https://img.shields.io:/static/v1?label=LastEdit&message=07/23/2022&color=9cf)
 ![Status](https://img.shields.io:/static/v1?label=Status&message=DRAFT&color=orange)
 ![Dependencies](https://img.shields.io:/static/v1?label=Dependencies&message=None&color=green)
 
-This document of takes a more detailed look at the firmware binaries that are used to update Frontier Silicon devices. For a detailed review of the FSAPI (NetRemoteApi) by Frontier-Silicon, take a look the following document: [`api-2.0`](api-2.0.md). To view the research on gathering the compression algorithm used to compress the main filesystem, take a look at the [`compression-2.0`](compresion-2.0.md) document.
+This document of takes a more detailed look at the firmware binaries that are used to update Frontier Smart devices. For a detailed review of the FSAPI (NetRemoteApi) by Frontier-Smart, take a look the [API-documentation](https://frontier-smart-api.readthedocs.io). 
+
+This document provides general information about how to analyze the downloaded firmware binaries. Because the different product series by Frontier Smart contains different update binaries, each structure is explained in a separate sub-chapter.
 
 <details>
   <summary>Table of Contents</summary>
@@ -26,19 +28,12 @@ This document of takes a more detailed look at the firmware binaries that are us
     </li>
     <li>
         <a href="#3-isu-inspector">ISU-Inspector Tool and API</a>
-        <ul>
-            <li><a href="#31-isuisuwalk">isu.isuwalk</a></li>
-            <li><a href="#32-isufsversion">isu.fsversion</a></li>
-        </ul>
-    </li>
-    <li>
-      <a href="#4-compressed-code">Compressed Code Analysis</a>
     </li>
   </ol>
 </details>
 
 ---
-Due to the fact that Frontier Silicon devices as well as the inspected MEDION device uses a custom OS, it makes the undestanding of the firmware files more difficult. As [this](https://web.archive.org/web/20180210192501/https://certifications.prod.wi-fi.org/pdf/certificate/public/download?cid=WFA55569) Wifi-ceritficate states, the `Venice 6.5` module by Frontier-Silicon is using the **`MeOS`** with version 5.2 ([source](https://github.com/MIPS/meos/blob/master/doc/rst/manual.rst)). A brief description follows:
+Due to the fact that Frontier Smart devices as well as the inspected MEDION device uses a custom OS, it makes the undestanding of the firmware files more difficult. As [this](https://web.archive.org/web/20180210192501/https://certifications.prod.wi-fi.org/pdf/certificate/public/download?cid=WFA55569) Wifi-ceritficate states, the `Venice 6.5` module by Frontier-Smart is using the **`MeOS`** with version 5.2 ([source](https://github.com/MIPS/meos/blob/master/doc/rst/manual.rst)). A brief description follows:
 
 > The MEOS (MIPS Embedded Operating System) provides a framework that allows systems programmers to design systems as loosely coupled collections of tasks and device driver modules, with the details of scheduling, synchronisation and communication being handled by a standardised and well tested environment.
 
@@ -73,11 +68,15 @@ DECIMAL       HEXADECIMAL     DESCRIPTION
 
 Now there is a much more detailed result on what contents are stored in the firmware file. Note that the offset - the beginning of the compressed data - starts at `0x2804EF` (~ 2.6Mb). This is an important information, because the data section before that offset is not used in the `binwalk` analysis.
 
+<details>
+<summary>More informtion about extracting files</summary>
+
 To view the contents stored in the directory archive the tool `isu_inspector.py` is used (stored in this repository). Type the follwing command in order to retrieve an accurate view of the stored data:
 
 ~~~console
-$ python3 isu_inspector.py -if FILE.isu.bin -of archive.xml --archive --verbose
+$ python3 fsapi.isu -if FILE.isu.bin -of archive.xml --archive --verbose
 ~~~
+
 A small description on the used parameters:
     
     if (Input File): the input binary
@@ -96,14 +95,23 @@ With the command line utility `dd` the file can be copied. Here, the `index.html
 ~~~bash
 $ dd if=FILE.isu.bin of=index.html bs=1 offset=2731787 count=762
 ~~~
-The `real_offset` value is used - it represents the offset in relation to the start of the binary. Because the file is compressed, the right compression tool should decompress it. Alternatively, `binwalk` can extract the contents at runtime. Unfortunately, these results are named by their offset position, e.g. the `2804EF` file stores image-data. To solve this problem, use the `ISU-Inspector Tool` with the `-e` flag to automatically extract (not decompress) archive files.
+The `real_offset` value is used - it represents the offset in relation to the start of the binary. Because the file is compressed, the right compression tool should decompress it. Most of the time, the stored files are compressed with `zlib`:
+
+```shell
+# decompress exctracted files
+$ zlib-flate -uncompress < "$file.zlib" > "$resultfile"
+```
+
+Alternatively, `binwalk` can extract the contents at runtime. Unfortunately, these results are named by their offset position, e.g. the `2804EF` file stores image-data. To solve this problem, use the `ISU-Inspector Tool` with the `-e` flag to automatically extract (**and uncompress**) archive files.
+
+</details>
 
 The files stored in the directory archive are exposed via a web interface to the user (if a web interface is present). They can be accessed by typing in the following url: `http://<IP>/<Path to File>.<Extension>`
 
 ### 1.1 Header structure
 ---
 
-There is a specific file header for the update files which contains additional information about the firmware file. The basic structure can be defined as follows: **All numbers are little endian**
+There is a specific file header for the update files which contains additional information about the firmware file. Note that all of the inspected binary files contain almost the same header structure, so basic structure can be defined as follows: **All numbers are little endian**
 
     ┌───────────────────────────────────────────────────────────────────┐
     │ ISU.BIN File Header                                               │
@@ -118,6 +126,16 @@ There is a specific file header for the update files which contains additional i
 * `MeOS Version`: The next four bytes may be used to indicate the `MeOS MajorVersion` and `MeOS MinorVersion`.
 * `Version`: The next 32 bytes are reserved for the version string. If the actual content does not reach 32 characters, all other are filled up with `0x20` = a whitespace.
 * `Customisation`: The next 64 bytes are reserved for the firmware string. If the actual content does not reach 64 characters, all other are filled up with `0x20` = a whitespace.
+
+#### 1.1.1 Customised Headers
+
+During analysis of different binary files, there was one that contained two additional fields in the ISU-Header. These fields are most likely there to define the major and minor version of the used file structure. Also, this custom header specifies a length of `0xA2` (`162`) bytes.
+
+Headers with additional specifications can be found in products with the `Venice 2.5` module and the `ir-fsccp-scb` interface specification. To use the implemented `ISUInspector`, just type the following:
+
+```python
+inspector = ISUInspector.getInstance("ir/fsccp.scb/FS2026")
+```
 
 ### 1.2 System-Entries
 ---
@@ -163,6 +181,8 @@ The first and second entry are equal compared to other firmware files that use t
     if entry_1st_byte - 2 is not entry_9th_byte:
       throw error: 'malformed entry'
 
+<details>
+<summary>Open this menu to see information about unidentified sections</summary>
 
 ### 1.2.1 Unidentified Section 1
 ---
@@ -236,11 +256,35 @@ As described above, the four section is following some raw data, which can also 
     │ Unknown: uint_16 │ data_blocks: bytes[12] │
     └──────────────────┴────────────────────────┘
 
+</details>
 
+
+Before compression and decompression buffers are defined, the `FS5332` (Minuet module) product series contain additional u-boot configuration options. They can be extracted manually by retrieving an `ISUInspector`:
+
+```python
+insp = ISUInspector.getInstance("ns/mmi/FS5332")
+config = insp.get_uboot_config(ISUFile("<file>"))
+```
+or by executing the `isu_inspector` tool:
+
+```shell
+$ python3 isu_inspector if="$file.ota.bin" --uboot --verbose
+[+] Found U-Boot configuration file:
+  - console: ttyUSB0,115200
+  - root: /dev/mtdblock9
+  - rootfstype: squashfs rw
+  - root_part_name: rootfs
+  - init: /sbin/init
+  - mtdparts: <mtd-id 'mv_nand'>
+     | <part-def> 256K(block0)
+     | <part-def> 2M(pre-bootloader)
+     | <part-def> 2M(post-bootloader)
+[...]
+```
 
 ### 1.3 Compression/Decompression Buffers 
-
-The next section starts at offset `2768`. The data between this offset and the last entry may be just a filler. A the name of this chapter states, that the following data could be used to identify the compressed file size (it is so). The structure is given below:
+---
+As the name of this chapter states, the following data could be used to identify the compressed file size (it is so). The structure is given below:
 
     ┌──────────────────────────────────────────────────────────┐
     │ ISU-Decomp/Comp/Code -Size or Buffer                     │
@@ -260,6 +304,8 @@ The next section starts at offset `2768`. The data between this offset and the l
 * `Size` (or `Buffer`): the first 4 bytes of the last 8 could specify the size or buffer linked to the given field.
 
 Note, that the value provided byte the `CompSize`-Field specifies the compressed size of the first partition. 
+
+Firmware binaries with the `FS2028` (`Venice 8` module) contain an additional field named `ZCompSSSize`. It will appear when `--header` is activated on the `isu_inspector` tool.
 
 ### 1.4 ISU-File structure
 To conclude what this chapter revealed about the file structure a small graphic will be presented below:
@@ -345,7 +391,7 @@ The type is defined as `0x00` = directory and `0x01` = file.
 
 To view the contents stored in the directory archive the tool isu_inspector.py is used (stored in this repository). Type the follwing command in order to retrieve an accurate view of the stored data. Additionally, you can use `-e` to extract the files afterwards. Note that these files might be compressed and their file names might let you assume they are not.
 
-    $ python3 isu_inspector.py -if FILE.isu.bin [-e] --archive --verbose
+    $ python3 -m fsapi.isu -if FILE.isu.bin [-e] --archive --verbose
 
 ### 2.1 Contents of a Directory Archive
 
@@ -365,7 +411,9 @@ The structure alone reveals some interesting information that was still unknown.
 
 > iPerf3 is a tool for active measurements of the maximum achievable bandwidth on IP networks. ([link](https://iperf.fr/))
 
-Looking at `FwImage`, the directory might contain a firmware image, which is absolutely right. Usually the file stored here is the latest firmware image for the inbuild Wifi-Chip.
+Looking at `FwImage`, the directory might contain a firmware image, which is absolutely right. Usually the file stored here is the latest firmware image for the inbuild Wifi-Chip. 
+
+While anayzing strings of the binary firmware files from Frontier Smart, one functions appeared everytime: `MrvAES_Unwrap`. The encryption for that file is provided at [doimage.c](https://github.com/ARM-software/arm-trusted-firmware/blob/master/tools/marvell/doimage/doimage.c) in the `arm-trusted-firmware` repository.
 
 ## 3. ISU-Inspector
 ---
@@ -395,109 +443,6 @@ extract data:
   -e, --extract  Extract data (usually combined with other parameters).
   --core         Extract the compressed core partition source.
 ```
-
-### 3.1 **isu.isuwalk**
-
-A small module written for fast analysis and parsing of ISU-firmware files. It contains different methods and constants.
-
----
-To parse the directory archive index, use `isu_parse_entry`. The function will delegate the execution to `_parse_file` or `_parse_dir`.
-
-    isu_parse_entry(root: FshElement, index, start, offset, buffer, level=0, verbose=False) -> tuple[int, int]
-
-* `root` [`FshElement` | `None`]: if the entries in the index of the directory archive should be stored into an object, this parameter should not be `None`. 
-* `index` [`int`]: the current position used in the buffer
-* `start` [`int`]: the offset postition of the directory archive in relation to the start of the file
-* `offset` [`int`]: a number to save to current offset position in relation to the start of the directory archive. This value can be `0` if the method is called the first time.
-* `buffer` [`bytes`]: obviously the byte buffer of the current file
-* `level` [`int`]: used to pretty print the output (do not change this)
-* `verbose` [`bool`]: indicate whether the information gathered should be printed
-* `@return` the next index and offset values after parsing 
-* `@usage`: 
-    ```python
-    index, _ = isuwalk.isu_parse_entry(tree, index, pos, 0, buffer, verbose=True)
-    ```
-
----
-To parse the version string or customisation string in the file header, this function can be used to parse them individually.
-
-    isu_parse_header_name(root, buffer, entry_name, index, verbose = False) -> tuple[int, str]:
-
-* `root` [`FshElement` | `None`]: if the entries in the index of the directory archive should be stored into an object, this parameter should not be `None`.
-* `buffer` [`bytes`]: obviously the byte buffer of the current file 
-* `entry_name` [`str` | `None`]: when output is enabled or the root element is not null, this element specifies the element.tag and output name.
-* `index` [`int`]: the current position used in the buffer
-* `verbose` [`bool`]: indicate whether the information gathered should be printed
-* `@return` the next index and the parsed name string 
-* `@usage`: 
-    ```python
-    # with root object and verbose
-    index, version = isuwalk.isu_parse_header_name(root, buffer, 'Version', index, verbose=True)
-
-    # only parsing
-    index, custom = isuwalk.isu_parse_header_name(None, buffer, None, index)
-    ```
-
----
-The next method parses a system table entry and stores all information gathered into a `FshElement`.
-
-    isu_parse_table_entry(root, buffer, index, verbose = False, entry_num = 0) -> tuple:
-
-* `root` [`FshElement` | `None`]: if the entries in the index of the directory archive should be stored into an object, this parameter should not be `None`.
-* `buffer` [`bytes`]: obviously the byte buffer of the current file 
-* `index` [`int`]: the current position used in the buffer
-* `verbose` [`bool`]: indicate whether the information gathered should be printed
-* `entry_num` [`int`]: the number of the latest entry parsed - the value should be 0 in the beginning
-* `@return` the next index, a boolean value that indicates a successfull result and the information packed into an `FshElement`
-* `@usage`:     
-    ```python
-    count = 0
-    while buffer[index] != 0x00:
-        index, success, element = isuwalk.isu_parse_table_entry(root, buffer, index, verbose, count)
-        [...]
-    ```
-
----
-In order to parse a field definition the following method can be used:
-
-    isu_parse_buf_or_size(root: FshElement, buffer: bytes, index: int, verbose: bool = False) -> tuple
-
-* `root` [`FshElement` | `None`]: if the entries in the index of the directory archive should be stored into an object, this parameter should not be `None`.
-* `buffer` [`bytes`]: obviously the byte buffer of the current file 
-* `index` [`int`]: the current position used in the buffer
-* `verbose` [`bool`]: indicate whether the information gathered should be printed
-* `@return` the next index and a boolean value that indicates a successfull result 
-* `@usage`:   
-    ```python
-    count = 0
-    while buffer[index] != 0x20:
-        index, success = isuwalk.isu_parse_buf_or_size(root, buffer, index, verbose)
-        [...]
-    ```
-
-### 3.2 **isu.fsversion**
-
-As described above, this module contains two classes that are used to enumerate the firmware version and customisation. Note that all parameters in the constructors are optional, because a parsing process can be initiated by calling `obj.loads(some_string)`.
-
----
-
-    class FSCutomization:
-        __init__(self, device_type, interface, module_type, module_version)
-
-* `device_type` [`str` | `None`]: usually `ir` for internet radio
-* `interface` [`str` | `None`]: The device interface defines how the binary is structured. This API contains an implementation for the `mmi` (Multi Media Interface).
-* `module_type` [`str` | `None`]: Additionally, the firmware file structure depends on the used module. (see `fsversion.FSVERSION_MODULE_TYPES` for a list of possible modules) This API puts the focus on `Venice x` modules.
-* `module_version` [`str` | `None`]: the version of the used module
-
----
-
-    class FSVersion:
-        __init__(self, firmware_version, sdk_version, revision, branch)
-* `firmware_version` [`str` | `None`]: the version of the used firmware
-* `sdk_version` [`str` | `None`]: the version of the SDK used to build the firmware. (Info was found [here](https://de.hama.com/webresources/drivers/00054/54818-IR320-Patch-Log.txt))
-* `revision` [`str` | `None`]: the revision at the time of publishing this firmware update
-* `branch` [`str` | `None`]: this could be the used branch where the software was developed
-
 
 ## 4. Compressed Code
 

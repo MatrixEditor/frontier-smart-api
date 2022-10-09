@@ -37,7 +37,7 @@ Some usage examples of the ISU module with explainations of each step:
 
   # A simple example of how to use the newly added ISUInspector. 
   # 
-  # The basic operations of th inspector are:
+  # The basic operations of the inspector are:
   #   - get_header
   #   - get_compression_fields
   #   - get_fs_tree
@@ -45,8 +45,8 @@ Some usage examples of the ISU module with explainations of each step:
   from fsapi.isu import *
 
   # get the inspector instance and load the ISU file
-  inspector = ISUInspector.getInstance("mmi")
-  fp = ISUFile("ir-mmi-<file>.isu.bin")
+  inspector = ISUInspector.getInstance("ir/mmi/fs2026")
+  fp = ISUFile("ir-mmi-FS2026-<file>.isu.bin")
 
   # load an ISUHeader object and print the loaded data
   header = inspector.get_header(fp, verbose=True)

@@ -5,7 +5,7 @@
 
 # Frontier Smart API and Firmware Analysis
 
-![LastEdit](https://img.shields.io:/static/v1?label=LastEdit&message=07/29/2022&color=9cf)
+![LastEdit](https://img.shields.io:/static/v1?label=LastEdit&message=09/10/2022&color=9cf)
 ![Status](https://img.shields.io:/static/v1?label=Status&message=LAST-STAGE&color=grey)
 ![Platform](https://img.shields.io:/static/v1?label=Platforms&message=Linux|Windows&color=yellowgreen)
 ![Docs](https://img.shields.io:/static/v1?label=Docs&message=stable&color=green)
@@ -45,15 +45,9 @@ In order to use the tools provided by this repository, almost all available firm
 
 A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [frontier-smart-api documentation](https://frontier-smart-api.readthedocs.io/).
 
-**Important Notice**: The `fisu` module is deprecated and should not be used. All functionalities were ported to the `isu` sub-module of `fsapi` and can be imported as follows:
+**Important Notice**: The `fisu` module is deprecated and should not be used. All functionalities were ported to the `isu` sub-module of `fsapi`. Usage information and examples are given in the [fsapi.isu](https://frontier-smart-api.readthedocs.io/en/latest/api/isu/) documentation.
 
-```python
-from fsapi.isu import *
-
-inspector = ISUInspector.getInstance('mmi')
-```
-
-By now, only `mmi` (Multi Media Interface) and `cui` (?) are implemented. Note that firmware binaries from `cui` modules are encrypted, so only the header can be extracted.
+**Notice**: Since version `0.2.0` there is another sub-module placed in the `fsapi` directory - named `ecmascript`. Although it is still under development, there are some functionalities can be used. They are described in the [fsapi.ecmascript](https://frontier-smart-api.readthedocs.io/en/latest/api/ecmascript/) part of the documentation. 
 
 ## Overview
 ---
@@ -146,7 +140,7 @@ There are two tools included in this repository together with two python modules
 
   #### __Installation__
 
-  This respository uses setuptools to install the python packages locally. All dependnecies used by the provided libraries should be installed by default. To install the preferred package, copy the `setup-XXX.py` file from the `setup/` directory and rename the file to `setup.py`:
+  This respository uses setuptools to install the python packages locally. All dependnecies used by the provided libraries should be installed by default. To install the preferred package, just type the following command:
 
   ```bash
   $ pip install .
@@ -160,30 +154,50 @@ There are two tools included in this repository together with two python modules
 
 </details>
 
+### ISUInspector
+---
+    $ python3 -m fsapi.isu --help
+    usage: __main__.py [-h] -if IF [-of OF] [--verbose] [-insp INSP] [--header] [--archive] [-e] [--core]
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      -if IF         The input file (must have the *.isu.bin or *.ota.bin extension)
+      -of OF         The output file (Format: XML).
+      --verbose      Prints useful information during the specified process.
+      -insp INSP     Sets the ISUInspector descriptor, which will be used to retrieve the inspector instance.
+
+    information gathering:
+      --header       Parses the header of the given file and extracts information.
+      --archive      Parses the directory archive.
+
+    extract data:
+      -e, --extract  Extract data (usually combined with other parameters).
+      --core         Extract the compressed core partition source.
+
 <details>
 <summary>Example of <code>isu_inspector.py</code>:</summary>
 
-    $ python3 -m fisu -if=./bin/FS2026/0500/ir-mmi-FS2026-0500-0015.2.5.15.EX44478-1B9.isu.bin --verbose --header
-
-                    ISU-Inspector Tool
-    ---------------------------------------------------------------------
+    $ python3 -m fsapi.isu -if bin/FS2026/0500/ir-mmi-FS2026-0500-0015.2.5.15.EX44478-1B9.isu.bin --header --verbose 
+      ╦╔═╗╦ ╦   ╦┌┐┌┌─┐┌─┐┌─┐┌─┐┌┬┐┌─┐┬─┐
+      ║╚═╗║ ║───║│││└─┐├─┘├┤ │   │ │ │├┬┘
+      ╩╚═╝╚═╝   ╩┘└┘└─┘┴  └─┘└─┘ ┴ └─┘┴└─
+    ───────────────────────────────────────────
 
     [+] Analyzing ISU File header...
       - MeOS Version: 1
       - Version: '2.5.15.EX44478-1B9'
         | SDK Version: IR2.5.15 SDK
         | Revision: 44478
-        | Branch: 1B9
-
+        | Branch: None
       - Customisation: 'ir-mmi-FS2026-0500-0015'
         | DeviceType: internet radio
         | Interface: multi media interface
         | Module: Venice 6 (version=0500)
 
     [+] SystemEntries:
-      - SysEntry: type=FS, partition=1
-      - SysEntry: type=FS, partition=2 (Could be DirectoryArchive for Web-Data)
-      - SysEntry: type=END, magicnumber=0x81c9
+      - SysEntry: type=0, partition=1, web_partition=False
+      - SysEntry: type=0, partition=2, web_partition=True
+      - SysEntry: type=1, partition=14, web_partition=False
 
     [+] Declared Fields:
       - DecompBuffer: Buffer=2957053952
@@ -193,6 +207,29 @@ There are two tools included in this repository together with two python modules
       - CompBuffer: Buffer=2952790016
 
 </details>
+
+---
+### FSAPI
+
+    $ python3 -m fsapi --help
+    usage: __main__.py [-h] [-W PIN] [-v] {explore,isu,get,set,list} ... target
+
+    positional arguments:
+      {explore,isu,get,set,list}
+                            sub-commands:
+        explore             Node Exploration
+        isu                 ISU Firmware Context
+        get                 Request a simple property
+        set                 Apply a value to a stored property.
+        list                Query property lists
+
+    optional arguments:
+      -h, --help            show this help message and exit
+
+    Global options:
+      target                The host address in IPv4 format.
+      -W PIN, --pin PIN     A PIN used by the device (default 1234).
+      -v, --verbose         Prints useful information during the specified process.
 
 <details>
 <summary>Example of <code>fsapi_tool.py</code>:</summary>
@@ -216,6 +253,13 @@ There are two tools included in this repository together with two python modules
 </details>
 
 ---
+
+### ECMAScript
+
+This module/tool is still under development and will be available soon.
+
+
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.

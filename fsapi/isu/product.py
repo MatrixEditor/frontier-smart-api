@@ -35,7 +35,6 @@ Both classes mentioned above can be created with and without their attributes. T
 a verison or customisation string, you can use the ``loads()`` method in both classes.
 '''
 
-
 import re
 
 __all__ = [
@@ -43,7 +42,37 @@ __all__ = [
   "FSVERSION_MODULE_TYPES"
 ]
 
-RE_CUSTOMISATION = r"^\w*-\w*-(FS\d{4})-\d{4}-\d{4}"
+# Structure of each customisation: The following EBNF-declarations should
+# cover all firmware customisations that were found and downloadable. At
+# fist, the <device_type> has to be specified as it defines the first 
+# section of the customisation string: 
+#
+# <device_type>       := <type> '-' <interface>
+# <type>              := 'ir' | 'ns'
+# <interface>         := <interface_name> [ '-' <sub_type> ]
+# <interface_name>    := 'mmi' | 'cui' | 'ser' | 'fsccp'
+# <sub_type>          := 'scb' | '16m'
+# 
+# The next section covers the used module version and model:
+#
+# <module>         := <module_type> '-' <module_version> '-' <product> [ '_' <spec> ]
+# <module_type>    := 'FS' NUMBER{4}
+# <module_version> := NUMBER{4} 
+# <product>        := NUMBER{4}
+# <spec>           := ( CHAR* | NUMBER* )* 
+# @PendingDeprecationWarning
+RE_CUSTOMISATION = r"^\w*-\w*-(FS\d{4})-\d{4}-\d{4}(_\w*)*"
+
+# Structure of each version: The following EBNF-declarations should
+# cover all firmware versions:
+# 
+# <version> := <release> '.' <feature> '.' <patch> '.' <revision> [ '-' <branch> ]
+# <release  := NUMBER{1}
+# <feature> := NUMBER{1, 2}
+# <patch> := NUMBER{1, 2} [ CHAR{1} [ NUMBER{1, 2} ] ]
+# <revision> := [ 'EX' ] NUMBER{5}
+# <branch> := ( 'V' NUMBER{1, 2} '.' NUMBER{1, 2} | NUMBER{1} [ CHAR{1} ]
+#                NUMBER{1, 2} [ CHAR{1} ] ) [ '-' <branch> ]
 RE_VERSION = r"^\d*([.][\d]*\w*\d*){2}[.].*-.*"
 
 FSVERSION_MODULE_TYPES = {
@@ -53,8 +82,10 @@ FSVERSION_MODULE_TYPES = {
   'FS2028': 'Venice 8',
   'FS2029': 'Venice 9',
   'FS2052': 'Verona',
+  'FS2340': 'Venice X',
   'FS2445': 'Verona 2',
-  'FS2230': 'Tuscany'
+  'FS2230': 'Tuscany',
+  'FS5332': 'Minuet'
 }
 
 class FSCustomisation:
@@ -76,10 +107,14 @@ class FSCustomisation:
     if not buffer:
       return
     
-    if not re.match(RE_CUSTOMISATION, buffer):
-      if verbose: print("[-] Unable to load FSVersion: malformed input")
-      return
+    # if not re.match(RE_CUSTOMISATION, buffer):
+    #   if verbose: print("[-] Unable to load FSVersion: malformed input")
+    #   return
     
+    # <type>
+    idx = buffer.find('-')
+    self.device_type = buffer[:idx]
+
     content = buffer.split('-')
     self.device_type = content[0]
     self.interface = content[1]
@@ -119,7 +154,7 @@ class FSVersion:
     self.sdk_version = 'IR' + self.firmware_version + ' SDK'
     temp = buffer[index+1:]
     self.revision = temp[2:7]
-    self.branch = temp[temp.index('-')+1:]
+    #self.branch = temp[temp.index('-')+1:]
     self.repr = buffer
 
   def __str__(self) -> str:

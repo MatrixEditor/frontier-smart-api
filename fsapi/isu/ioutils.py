@@ -65,7 +65,7 @@ def to_ui16(buffer: bytes, index: int = 0) -> int:
   '''
   return buffer[index] | buffer[index + 1] << 8
 
-def skip(buffer: bytes, start: int, pattern: list) -> tuple:
+def skip(buffer, start: int, pattern: list) -> tuple:
   '''Utility function to skip the given pattern in the provided buffer.
   
   This method returns a ``tuple`` with the next index and ``bool`` value indicating
@@ -98,7 +98,7 @@ def skip(buffer: bytes, start: int, pattern: list) -> tuple:
   
   return pos+start, True
 
-def verify_skip(values: tuple, message: str = None, verbose: bool = False) -> bool:
+def verify_skip(values: tuple, message: str = '', verbose: bool = False) -> tuple:
   '''Utility wrapper for printing a message if the ``skip()`` method fails.
 
   A sample usage of this method could be the following:

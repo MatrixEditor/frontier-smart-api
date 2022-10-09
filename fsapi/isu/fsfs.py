@@ -88,6 +88,12 @@ class FSFSFile:
   def get_attribute(self, name):
     '''Returns the stores attribute's value.'''
     if name: return self.attr[name]
+  
+  def get_element(self, tag: str) -> 'FSFSFile':
+    '''Returns an element with the same tag'''
+    for elmnt in self:
+      if elmnt.tag == tag:
+        return elmnt
 
   def toXml(self, indent='') -> str:
     '''Converts this object into a string (XML-format).'''
@@ -97,7 +103,7 @@ class FSFSFile:
       self._attr_to_str()
     )
     if not self.text and len(self.elements) == 0:
-      return xml_str + "/>"
+      return xml_str + " />"
     else:
       xml_str += '>'
       if len(self.elements) != 0:
@@ -123,7 +129,7 @@ class FSFSFile:
     
   def append(self, e: 'FSFSFile'):
     """Adds a given FSFSFile object to this one."""
-    if e: self.get_elements().append(e)
+    if e is not None: self.elements.append(e)
   
   def rem_attribute(self, name):
     """Removes the mapped value for the given name, if stored."""

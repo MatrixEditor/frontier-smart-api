@@ -60,6 +60,9 @@ class ISUFile:
     self.v += 1
     return self[pos]
   
+  def get_buffer(self) -> bytes:
+    return self._file
+
   @property
   def position(self) -> int:
     return self.v
@@ -149,7 +152,7 @@ class ISUInspector:
 
   @staticmethod
   def getInstance(name: str) -> 'ISUInspector':
-    return INSPECTOR_TABLE[name]()
+    return INSPECTOR_TABLE[name.lower()]()
 
   def get_fs_tree(self, buffer: ISUFile, offset: int = 0, **kwgs) -> FSFSTree:
     pass
