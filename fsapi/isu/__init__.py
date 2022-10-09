@@ -43,6 +43,23 @@ Additionally, this module contains a `Tree` implementation in ``FSFSFile`` (Fron
 Smart File System File). It is mainly used to store the extracted data in the XML-
 Format. Some usage examples can be viewed in the newer version of the `isu_inspector`
 tool. 
+
+The following table shows all top-level names of the ISUInspector class provided in this
+API:
+
++--------+---------------------------------------------------------------------------------+
+|  Name  | Description                                                                     |
++========+=================================================================================+
+| ir/mmi | Basic ISU inspectors for most of the firmware binaries. All standard operations |
+|        | are supported by the returned instance.                                         |       
++--------+---------------------------------------------------------------------------------+
+| ir/cui | Inspectors written to handle files from devices with the CUI module type. Only  |
+|        | the ``get_header()`` method will work here.                                     |
++--------+---------------------------------------------------------------------------------+
+| ns/mmi | These special inspectors will inspect ``ota.bin`` files from devices with the   |
+|        | Minuet module. Only the ``get_header()`` and ``get_boot_config()`` method       |
+|        | can be called.                                                                  |
++--------+---------------------------------------------------------------------------------+
 '''
 
 __version__ = "0.1.8"
@@ -51,6 +68,5 @@ __author__ = "MatrixEditor"
 from .fsfs import *
 from .product import *
 from .walk import *
-from .mmi import *
-from .cui import *
+from .inspectors import *
 

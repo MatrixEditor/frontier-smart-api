@@ -84,9 +84,13 @@ def delegate_isu(args: dict, radio: fsapi.RadioHttp):
     except: pass
     
     for _firmware in open(path, 'r').read().split('\n'):
-      url = 'https://%s/Update.aspx?f=/updates/%s.isu.bin' % (
-        fsapi.ISU_FILE_PROVIDER_HOST, _firmware.replace('_V', '.')
-      )
+      parts = _firmware.split('-')
+      
+      url = fsapi.isu_new_url(_firmware)
+      if not url:
+        if verbose: print('[-] Could not create download URL')
+        continue
+      
       if verbose: 
         print(' > Donwload of: isu-download/%s.isu.bin' % _firmware)
         print('     ::url "%s"' % url)

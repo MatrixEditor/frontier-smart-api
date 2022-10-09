@@ -23,6 +23,7 @@ __doc__ = '''
 The backend used to find and download updates is located at ``update.wifiradiofrontier.com.``
 To interact with the underlaying API, the isudata-module comes with two main-methods:
 
+* ``isu_new_url``, 
 * ``isu_find_update`` and
 * ``isu_get_update``.
 
@@ -36,7 +37,7 @@ from .netconfig import FSNetConfiguration
 
 __all__ = [
   "ISU_FILE_PROVIDER_HOST", "ISUSoftwareElement", "isu_find_update",
-  "isu_get_update"
+  "isu_get_update", "isu_new_url"
 ]
 
 ###############################################################################
@@ -44,6 +45,7 @@ __all__ = [
 ###############################################################################
 
 ISU_FILE_PROVIDER_HOST = 'update.wifiradiofrontier.com'
+ISU_EDGE_PROVIDER_HOST = 'nuv-isu-cdn.azureedge.net'
 # https://nuv-isu-cdn.azureedge.net/srupdates/srupdates/ir-cui-FS2340-0000-0146/ir-cui-FS2340-0000-0146_V4.5.13.707296-1A20.isu.bin
 ISU_REQUEST_HEADERS = {
   'User-Agent': "FSL IR/0.1",
@@ -228,16 +230,55 @@ def isu_get_update(path: str, url: str = None, software: ISUSoftwareElement = No
     response = netconfig.delegate_request('GET', url, ISU_REQUEST_HEADERS, preload_content=False)
     response.chunked
   else:
+    # manager = urllib3.PoolManager(headers=ISU_REQUEST_HEADERS, timeout=5)
     if 'https' not in url: url = url.replace('http', 'https')
-    pool = urllib3.HTTPSConnectionPool(host=ISU_FILE_PROVIDER_HOST, headers=ISU_REQUEST_HEADERS, timeout=5)
+    pool = urllib3.HTTPSConnectionPool(host=url.split("/")[2], headers=ISU_REQUEST_HEADERS, timeout=5)
     response = pool.request('GET', url, preload_content=False)
     
   if response.status != 200:
     if verbose: print("[-] Unexpected result code:", response.status)
     response.release_conn()
     return
-  
-  with open(path, 'wb') as _res:
-    for chunk in response.stream(4096*16):
-      if chunk: _res.write(chunk)
+  try:
+    with open(path, 'wb') as _res:
+      for chunk in response.stream(4096*16):
+        if chunk: _res.write(chunk)
+  except:
+    print('[-] TImeout Error...')
   response.release_conn()
+
+def isu_new_url(name: str) -> str:
+  '''An URL generator for the given product descriptor.
+
+  :param name: the customisation and version put toghether wither with 
+               a '`_V`'.
+  :returns: the newly generated url where the firmware can be downloaded
+  '''
+  parts = name.split('-')
+  fs_part = None
+  url = None
+
+  # NOTE: Some firmware binaries contain different sub-interfaces, so
+  # the FSXXXX module definition will be shift to the right.
+  for f in filter(lambda x: 'FS' in x, parts):
+    fs_part = f
+    break
+
+  if fs_part is not None:
+    if fs_part == 'FS2340':
+      customisation = name.split('_V')[0]
+      url = 'https://%s/srupdates/srupdates/%s/%s.isu.bin' % (
+        ISU_EDGE_PROVIDER_HOST, customisation, name
+      )
+    elif fs_part == 'FS5332':
+      customisation = name.split('_V')[0]
+      url = 'https://%s/nsupdates/nsupdates/%s/%s.ota.bin' % (
+        ISU_EDGE_PROVIDER_HOST, customisation, name
+      )
+    else:
+      url = 'https://%s/Update.aspx?f=/updates/%s.isu.bin' % (
+        ISU_FILE_PROVIDER_HOST, name.replace('_V', '.')
+      )
+
+  return url
+  

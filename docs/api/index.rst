@@ -10,5 +10,6 @@ FSAPI
   isu/index
   isudata
   netremote/index
+  ecmascript/index
 
 .. automodule:: fsapi

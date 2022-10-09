@@ -9,6 +9,8 @@ ISU -- Firmware downloading
 .. autoclass:: ISUSoftwareElement
   :members:
 
+.. autofunction:: isu_new_url
+
 .. autofunction:: isu_get_update
 
 .. autofunction:: isu_find_update
