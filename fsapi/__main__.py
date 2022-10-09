@@ -8,9 +8,11 @@ from time import sleep, time
 
 RE_IPV4 = r"^\d{1,3}(.\d{1,3}){3}$"
 
-__BANNER__ = """
-\t\tFrontier Silicon FSAPI Module
----------------------------------------------------------------------
+__BANNER__ = """\
+             __ __ _  _ ___
+            |_ (_ |_||_) | 
+            |  __)| ||  _|_
+───────────────────────────────────────
 """
 
 def delegate_explore(args: dict, radio: fsapi.RadioHttp):

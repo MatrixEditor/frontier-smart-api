@@ -271,7 +271,7 @@ def isu_new_url(name: str) -> str:
         ISU_EDGE_PROVIDER_HOST, customisation, name
       )
     elif fs_part == 'FS5332':
-      customisation = name.split('_V')[0]
+      customisation = name.split('_')[0]
       url = 'https://%s/nsupdates/nsupdates/%s/%s.ota.bin' % (
         ISU_EDGE_PROVIDER_HOST, customisation, name
       )

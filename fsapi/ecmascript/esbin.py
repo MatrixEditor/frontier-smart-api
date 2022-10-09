@@ -135,7 +135,6 @@ def load_rstrings(buffer: bytes) -> 'ECMAScript':
   :returns: A list of resource strings packed into an ECMAScript object.
   '''
   global_script = None
-
   for script_buf in buffer.split(ES_BIN_MAGIC):
     if len(script_buf) == 0: continue
 
@@ -154,6 +153,7 @@ def load_rstrings(buffer: bytes) -> 'ECMAScript':
       script = ECMAScript(str(script_buf[idx:idx+length], 'utf-8'))
       global_script.subscripts.append(script)
     
+    # script.header.load(script_buf, 0)
     idx += len(script.name)
     flags1 = ioutils.to_ui32(script_buf, idx)
     flags2 = ioutils.to_ui32(script_buf, idx + 4)

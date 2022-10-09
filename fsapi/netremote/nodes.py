@@ -610,6 +610,105 @@ class BaseMiscFsDebugTraceLevel(NodeU8):
   def get_prototype(self) -> str:
     return self.prototype
 
+class BaseDebugIncidentReportLastCreatedKey(NodeU8):
+  def __init__(self, value: str = None) -> None:
+    super().__init__(value, 1024)
+    self.prototype = NodePrototype(arg=NodeArg(data_type=ARG_TYPE_U8))
+
+  @staticmethod
+  def is_cacheable() -> bool:
+    return False
+  
+  @staticmethod
+  def is_notifying() -> bool:
+    return False
+
+  @staticmethod
+  def is_readonly() -> bool:
+    return True
+  
+  @staticmethod
+  def get_name() -> str:
+    return 'netRemote.debug.incidentReport.lastCreatedKey'
+  
+  def get_prototype(self) -> str:
+    return self.prototype
+
+class BaseDebugIncidentReportCreate(NodeU8):
+  def __init__(self, value: str = None) -> None:
+    super().__init__(value, 1024)
+    self.prototype = NodePrototype(arg=NodeArg(data_type=ARG_TYPE_U8))
+
+  @staticmethod
+  def is_cacheable() -> bool:
+    return False
+  
+  @staticmethod
+  def is_notifying() -> bool:
+    return False
+
+  @staticmethod
+  def is_readonly() -> bool:
+    return False
+  
+  @staticmethod
+  def get_name() -> str:
+    return 'netRemote.debug.incidentReport.create'
+  
+  def get_prototype(self) -> str:
+    return self.prototype
+
+class BaseDebugIncidentReportList(NodeList):
+  def __init__(self, value: str = None) -> None:
+    super().__init__(value, 1024)
+    self.prototype = NodePrototype(args=[
+      NodeArg('uuid', 100, ARG_TYPE_C), NodeArg('path', 100, ARG_TYPE_C),
+      NodeArg('time', 100, ARG_TYPE_C), NodeArg('key', 100, ARG_TYPE_C)
+    ])
+
+  @staticmethod
+  def is_cacheable() -> bool:
+    return False
+  
+  @staticmethod
+  def is_notifying() -> bool:
+    return False
+
+  @staticmethod
+  def is_readonly() -> bool:
+    return True
+  
+  @staticmethod
+  def get_name() -> str:
+    return 'netRemote.debug.incidentReport.list'
+  
+  def get_prototype(self) -> str:
+    return self.prototype
+
+class BaseDebugIncidentReportDelete(NodeU8):
+  def __init__(self, value: str = None) -> None:
+    super().__init__(value, 1024)
+    self.prototype = NodePrototype(arg=NodeArg(data_type=ARG_TYPE_U8))
+
+  @staticmethod
+  def is_cacheable() -> bool:
+    return False
+  
+  @staticmethod
+  def is_notifying() -> bool:
+    return False
+
+  @staticmethod
+  def is_readonly() -> bool:
+    return False
+  
+  @staticmethod
+  def get_name() -> str:
+    return 'netRemote.debug.incidentReport.delete'
+  
+  def get_prototype(self) -> str:
+    return self.prototype
+
 class BaseMiscNvsData(NodeC):
   def __init__(self, value: str = None) -> None:
     super().__init__(value, 1024)

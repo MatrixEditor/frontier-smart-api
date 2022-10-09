@@ -48,7 +48,7 @@ __all__ = [
 # section of the customisation string: 
 #
 # <device_type>       := <type> '-' <interface>
-# <type>              := 'ir' | 'ns'
+# <type>              := 'ir' | 'ns' | 'dab'
 # <interface>         := <interface_name> [ '-' <sub_type> ]
 # <interface_name>    := 'mmi' | 'cui' | 'ser' | 'fsccp'
 # <sub_type>          := 'scb' | '16m'
@@ -75,58 +75,70 @@ RE_CUSTOMISATION = r"^\w*-\w*-(FS\d{4})-\d{4}-\d{4}(_\w*)*"
 #                NUMBER{1, 2} [ CHAR{1} ] ) [ '-' <branch> ]
 RE_VERSION = r"^\d*([.][\d]*\w*\d*){2}[.].*-.*"
 
+# Each datasheet can be downloaded from the following URL:
+# https://www.electronicsdatasheets.com/manufacturers/frontier-silicon/parts/
 FSVERSION_MODULE_TYPES = {
+  'FS1230': 'Chorus 3',
+  'FS1235': 'Kino',
   'FS2025': 'Venice 5',
   'FS2026': 'Venice 6',
   'FS2027': 'Venice 7',
   'FS2028': 'Venice 8',
   'FS2029': 'Venice 9',
   'FS2052': 'Verona',
+  'FS2230': 'Tuscany',
+  'FS2240': 'Roma',
   'FS2340': 'Venice X',
   'FS2445': 'Verona 2',
-  'FS2230': 'Tuscany',
+  'FS4052': 'Venus',
+  'FS4053': 'Venus 2I-L',
+  'FS4230': 'Neptune',
+  'FS4240': 'Ceres',
+  'FS4255': 'Venus-H2',
   'FS5332': 'Minuet'
 }
 
 class FSCustomisation:
-  def __init__(
-    self,
-    device_type: str = None,
-    interface: str = None,
-    module_type: str = None,
-    module_version: str = None
-  ) -> None:
-    self.device_type = device_type
-    self.interface = interface
-    self.module_type = module_type
-    self.module_version = module_version
-    self.module_name = None
-    self.repr = None
+  def __init__(self) -> None:
+    self.device_type: str = None
+    self.type_spec: str = None
+    self.interface: str = None
+    self.interface_sub_types: list = []
+    self.module_type: str = None
+    self.module_version: str = None
+    self.product: str = None
+    self.spec: str = None
+    self.repr: str = None
 
   def loads(self, buffer: str, verbose: bool = False):
     if not buffer:
       return
     
-    # if not re.match(RE_CUSTOMISATION, buffer):
-    #   if verbose: print("[-] Unable to load FSVersion: malformed input")
-    #   return
-    
-    # <type>
-    idx = buffer.find('-')
-    self.device_type = buffer[:idx]
-
     content = buffer.split('-')
-    self.device_type = content[0]
-    self.interface = content[1]
-    self.module_type = content[2]
-    self.module_version = content[3]
     self.repr = buffer
+    self.type_spec = content[0]
+    self.interface = content[1]
+    
+    idx = 2
+    while 'FS' not in content[idx]:
+      self.interface_sub_types.append(content[idx])
+      idx += 1
+
+    self.device_type = '-'.join([self.type_spec, self.interface] + self.interface_sub_types)
+    self.module_type = content[idx]
+    self.module_version = content[idx+1]
+    self.product = content[idx+2]
+
+    if '_' in self.product:
+      values = self.product.split('_')
+      self.product = values[0]
+      self.spec = values[1]
 
     if self.module_type in FSVERSION_MODULE_TYPES:
       self.module_name = FSVERSION_MODULE_TYPES[self.module_type]
 
-  def get_module_name(self):
-    return self.module_name
+  def get_module_name(self) -> str:
+    return FSVERSION_MODULE_TYPES[self.module_type]
 
   def __str__(self) -> str:
     return self.repr

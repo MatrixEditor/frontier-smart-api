@@ -11,7 +11,7 @@ import os
 project = 'frontier-smart-api'
 copyright = '2022, MatrixEditor'
 author = 'MatrixEditor'
-release = '0.2.0'
+release = '0.2.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

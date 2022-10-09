@@ -88,7 +88,6 @@ class MMIInspector(ISUInspector):
         print("  - Version: '%s'" % str(fsv))
         print("     | SDK Version: %s" % (fsv.sdk_version))
         print("     | Revision: %s" % (fsv.revision))
-        print("     | Branch: %s" % (fsv.branch))
         print("  - Customisation: '%s'" % str(fsc))
         print("     | DeviceType: %s" % ('internet radio' if fsc.device_type == 'ir' else fsc.device_type))
         print("     | Interface: %s" % ('multi media interface' if fsc.interface == 'mmi' else fsc.interface))
