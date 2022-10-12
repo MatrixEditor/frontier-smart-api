@@ -1,3 +1,24 @@
+# MIT License
+
+# Copyright (c) 2022 MatrixEditor
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 import argparse
 import os
 import re
@@ -86,7 +107,7 @@ def delegate_isu(args: dict, radio: fsapi.RadioHttp):
     except: pass
     
     for _firmware in open(path, 'r').read().split('\n'):
-      parts = _firmware.split('-')
+      if not _firmware: continue
       
       url = fsapi.isu_new_url(_firmware)
       if not url:
@@ -97,6 +118,7 @@ def delegate_isu(args: dict, radio: fsapi.RadioHttp):
         print(' > Donwload of: isu-download/%s.isu.bin' % _firmware)
         print('     ::url "%s"' % url)
       fsapi.isu_get_update('isu-download/%s.isu.bin' % _firmware, url, verbose=verbose)
+      print()
     if verbose: print('[+] Download complete')
 
 def delegate_get(args: dict, radio: fsapi.RadioHttp):
@@ -163,7 +185,13 @@ def delegate_list(args: dict, radio: fsapi.RadioHttp):
 
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser()
+  parser = argparse.ArgumentParser(
+    description="""
+    A python implementation of the FSAPI with all possible nodes.
+
+    You can execute the fsapi.isu or fsapi.ecmascript module
+    by typing the same command but with their module name."""
+  )
   subparsers = parser.add_subparsers(help="sub-commands:")
 
   explore_parser = subparsers.add_parser('explore', help="Node Exploration")

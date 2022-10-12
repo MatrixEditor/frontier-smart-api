@@ -389,13 +389,13 @@ The type is defined as `0x00` = directory and `0x01` = file.
     │   │   │ - file data:       bytes         │
     └───┴───┴──────────────────────────────────┘
 
-To view the contents stored in the directory archive the tool isu_inspector.py is used (stored in this repository). Type the follwing command in order to retrieve an accurate view of the stored data. Additionally, you can use `-e` to extract the files afterwards. Note that these files might be compressed and their file names might let you assume they are not.
+To view the contents stored in the directory archive the tool isu_inspector.py is used (stored in this repository). Type the follwing command in order to retrieve an accurate view of the stored data. Additionally, you can use `-e` to extract **and** uncompress the files afterwards. 
 
     $ python3 -m fsapi.isu -if FILE.isu.bin [-e] --archive --verbose
 
 ### 2.1 Contents of a Directory Archive
 
-The structure a defined directory archive in ISU-Files differs not that much. The tree structure can be represented as follows:
+The structure a defined directory archive in ISU-Files (except `FS2028`) differs not that much. The tree structure can be represented as follows:
 
     icons/
     web/
@@ -417,27 +417,26 @@ While anayzing strings of the binary firmware files from Frontier Smart, one fun
 
 ## 3. ISU-Inspector
 ---
-This chapter contains a brief instruction overview to the internal tool and API provided by this repository. Named `fisu`, the API can be used to parse a directory archive, system-table-entries and field declarations with `isuwalk`. Additionally, the internal storage object model is realized by a custom XML-Tree structure named `FshTree` and `FshElement`. 
+This chapter contains a brief instruction overview to the internal tool and API provided by this repository. Named `fsapi.isu`, the API can be used to parse a directory archive, system-table-entries and field declarations with an `ISUInspector` instance.
 
-In order to describe the version and customisation of a firmware binary the classes `FSCustomisation` and `FSVersion` in `fsversion` are used.
+In order to describe the version and customisation of a firmware binary the classes `FSCustomisation` and `FSVersion` in `fsapi.isu.product` are used.
 
 Help page
 ```console
-$ python3 isu_inspector.py --help
-# or 
-$ python3 -m fisu --help
-usage: isu_inspector.py [-h] -if IF [-of OF] [--verbose] [--header] [--archive] [--sig SIG] [-e] [--core]
+$ python3 -m fsapi.isu --help
+usage: __main__.py [-h] -if IF [-of OF] [--verbose] [-insp INSP] [--header] [--archive] [-e] [--core]
 
-options:
+optional arguments:
   -h, --help     show this help message and exit
-  -if IF         The input file (must have the *.isu.* extension)
+  -if IF         The input file (must have the *.isu.bin or *.ota.bin extension)
   -of OF         The output file (Format: XML).
   --verbose      Prints useful information during the specified process.
+  -insp INSP     Sets the ISUInspector descriptor, which will be used to 
+                 retrieve the inspector instance.
 
 information gathering:
   --header       Parses the header of the given file and extracts information.
-  --archive      Parses the virtual filesystem.
-  --sig SIG      The path to the 'file_sigs.json file'. This option includes the signature search.
+  --archive      Parses the directory archive.
 
 extract data:
   -e, --extract  Extract data (usually combined with other parameters).

@@ -20,13 +20,15 @@ Basic usage (v0.2.0)
 
 .. code:: python
 
-  buffer = ... # es.bin file data
-  script = ecmascript.load_rstrings(buffer)
+  from fsapi import ecmascript
 
-  # iterate over all possible sub-scripts placed in the main script
-  for subscript in script:
-    # get parsed resource strings (packed into a list)
-    rstrings = subscript.components
+  # decompile the byte code from the given file
+  decompiler_path = 'decompiler/ecma-decompiler'
+  with ecmascript.Decompiler(decompiler_path, '<file>') as dc:
+    # retrieve the source code as a string with 
+    code = str(dc)
+    # or directly with
+    code = dc.code
 
 .. raw:: html
 

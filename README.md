@@ -11,11 +11,11 @@
 [![Documentation Status](https://readthedocs.org/projects/frontier-smart-api/badge/?version=latest)](https://frontier-smart-api.readthedocs.io/en/latest/?badge=latest)
 
 
-This repository contains different tools written in `python3` to examine properties of firmware binaries provided by Frontier Silicon (former Frontier Smart - FS) and to interact with the inbuild API. 
+This repository contains different tools written in `python3` to examine properties of firmware binaries provided by Frontier Silicon (former Frontier Smart - FS) and to interact with the inbuild API. The decompiler used here was forked initially from the [dead0007](https://github.com/molnarg/dead0007/blob/master/README.md) repository.
 
 Allthough there are some repositories that focus on that specific API, the implementation provided here contains all available `Nodes` that were invented/developed by Frontier Smart. The nodes were converted from `java` source code (The [Tool](apk/node_converter.py) is also in this repository).
 
-In order to use the tools provided by this repository, almost all available firmware binaries are located in the folder [`bin/`](bin/). Most of them were forked from [here](https://github.com/cweiske/frontier-silicon-firmwares).
+In order to use the tools provided by this repository, almost all available firmware binaries are located in the folder [`bin/`](bin/). Most of them were forked from [here](https://github.com/cweiske/frontier-silicon-firmwares). 
 
 <details>
   <summary>Table of Contents</summary>
@@ -43,11 +43,11 @@ In order to use the tools provided by this repository, almost all available firm
 ---
 ## Documents
 
-A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [frontier-smart-api documentation](https://frontier-smart-api.readthedocs.io/).
+A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [frontier-smart-api documentation](https://frontier-smart-api.readthedocs.io/). For decompiling the ECMAScript
 
 **Important Notice**: The `fisu` module is deprecated and should not be used. All functionalities were ported to the `isu` sub-module of `fsapi`. Usage information and examples are given in the [fsapi.isu](https://frontier-smart-api.readthedocs.io/en/latest/api/isu/) documentation.
 
-**Notice**: Since version `0.2.0` there is another sub-module placed in the `fsapi` directory - named `ecmascript`. Although it is still under development, there are some functionalities can be used. They are described in the [fsapi.ecmascript](https://frontier-smart-api.readthedocs.io/en/latest/api/ecmascript/) part of the documentation. 
+**Notice (UNIX only)**: Since version `0.2.0` there is another sub-module placed in the `fsapi` directory - named `ecmascript`. Its functionalities are described in the [fsapi.ecmascript](https://frontier-smart-api.readthedocs.io/en/latest/api/ecmascript/) part of the documentation.
 
 ## Overview
 ---
@@ -70,7 +70,7 @@ $ adb pull $PATH_TO_APK_FILE $LOCAL_PATH
 In order to view the decompiled `java`-code, the `jadx`
 -decompiler and `jadx-gui` were used. This tool also provides an export function to save the decompiled `java` sources locally.
 
-The source code contains a package called `src/com/frontier_silicon/NetRemoteLib/Node/` where all available nodes are stored/ implemented with a `java` class each. There was also a [tool](apk/node_converter.py) created to convert these classes into python classes. To use  the generated code you have to copy [this](fsapi/netremote/basenode.py) python file.
+The source code contains a package called `src/com/frontier_silicon/NetRemoteLib/Node/` where all available nodes are stored/ implemented with a `java` class each. There was also a [tool](apk/node_converter.py) created to convert these classes into python classes. To use  the generated code you have to copy [this](fsapi/netremote/basenode.py) python file. **Update:** When converting the Java-classes to Python code, four nodes won't be covered by default. Since `0.2.2` there are additional pre-defined [Java-Classes](apk) that have to be copied before generating the nodes.
 
 Lets take a look at the network traffic produced by the internet radio. In order to capture all packets, a proxy could be very useful. Because there is no possibility to setup a simple proxy on that device, the traffic was captured directly on the connected wifi access point.
 
@@ -209,6 +209,7 @@ There are two tools included in this repository together with two python modules
 </details>
 
 ---
+
 ### FSAPI
 
     $ python3 -m fsapi --help
@@ -256,8 +257,23 @@ There are two tools included in this repository together with two python modules
 
 ### ECMAScript
 
-This module/tool is still under development and will be available soon.
+This module/tool is still under development and can cause errors an execution. Also, this tool can only be called on UNIX systems that are able to execute the `./decompiler/ecma-decompiler` binary.
 
+    $ py -m fsapi.ecmascript --help
+    usage: __main__.py [-h] [-d] [-o OUT] [--use-decompiler DECOMPATH] [-r] path
+
+    positional arguments:
+      path                  The target file that will be used to operate on.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -d, --decompile       Indicates that the given input file should be decompiled.
+      -o OUT, --out OUT     The path were the decompiled output should be saved.
+
+      --use-decompiler DECOMPATH
+                            Specifies the path to the decompiler.
+      -r, --recurse         Indicates that all files in the given directory should be
+                            decompiled
 
 
 ## Contributing
