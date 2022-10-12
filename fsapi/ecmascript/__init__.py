@@ -36,3 +36,4 @@ releases.
 '''
 
 from .esbin import *
+from .opcode import *

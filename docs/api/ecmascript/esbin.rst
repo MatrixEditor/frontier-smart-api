@@ -1,8 +1,8 @@
 .. _esbin:
 
-==================================
-ECMAScript binary inspector/parser
-==================================
+============================
+ECMAScript binary decompiler
+============================
 
 .. automodule:: fsapi.ecmascript.esbin
 
@@ -22,16 +22,9 @@ True
 .. autoattribute:: fsapi.ecmascript.esbin.ES_BIN_MAGIC
 
 ECMAScript binary files always start with header information and a file 
-signature, which is ``07 00 AD DE``.
+signature, which is ``DE AD 00 07`` (ScriptMonkey v1.8).
 
 .. autofunction:: is_valid_ext
 
-.. autofunction:: read_rstring
-
-.. autofunction:: load_rstrings
-
-.. autoclass:: ECMAScriptHeader
-  :members:
-
-.. autoclass:: ECMAScript
+.. autoclass:: Decompiler
   :members:
