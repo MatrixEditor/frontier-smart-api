@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
   name="fsapi",
-  version="0.2.2",
+  version="0.2.3",
   description="Frontier Silicon (former Frontier Smart) API",
   url="https://github.com/MatrixEditor/frontier-smart-api",
   author="MatrixEditor",

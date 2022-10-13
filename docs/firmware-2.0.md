@@ -71,7 +71,7 @@ Now there is a much more detailed result on what contents are stored in the firm
 <details>
 <summary>More informtion about extracting files</summary>
 
-To view the contents stored in the directory archive the tool `isu_inspector.py` is used (stored in this repository). Type the follwing command in order to retrieve an accurate view of the stored data:
+To view the contents stored in the directory archive the tool `fsapi.isu` module is used (stored in this repository). Type the follwing command in order to retrieve an accurate view of the stored data:
 
 ~~~console
 $ python3 fsapi.isu -if FILE.isu.bin -of archive.xml --archive --verbose
@@ -102,7 +102,7 @@ The `real_offset` value is used - it represents the offset in relation to the st
 $ zlib-flate -uncompress < "$file.zlib" > "$resultfile"
 ```
 
-Alternatively, `binwalk` can extract the contents at runtime. Unfortunately, these results are named by their offset position, e.g. the `2804EF` file stores image-data. To solve this problem, use the `ISU-Inspector Tool` with the `-e` flag to automatically extract (**and uncompress**) archive files.
+Alternatively, `binwalk` can extract the contents at runtime. Unfortunately, these results are named by their offset position, e.g. the `2804EF` file stores image-data. To solve this problem, use `fsapi.isu` with the `-e` flag to automatically extract (**and uncompress**) archive files.
 
 </details>
 
@@ -268,7 +268,7 @@ config = insp.get_uboot_config(ISUFile("<file>"))
 or by executing the `isu_inspector` tool:
 
 ```shell
-$ python3 isu_inspector if="$file.ota.bin" --uboot --verbose
+$ python3 -m fsapi.isu if="$file.ota.bin" --uboot --verbose
 [+] Found U-Boot configuration file:
   - console: ttyUSB0,115200
   - root: /dev/mtdblock9

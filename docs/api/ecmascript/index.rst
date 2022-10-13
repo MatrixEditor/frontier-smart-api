@@ -15,7 +15,7 @@ will work without any errors.
 
   esbin
 
-Basic usage (v0.2.0)
+Basic usage (v0.2.3)
 ~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python

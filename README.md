@@ -11,7 +11,7 @@
 [![Documentation Status](https://readthedocs.org/projects/frontier-smart-api/badge/?version=latest)](https://frontier-smart-api.readthedocs.io/en/latest/?badge=latest)
 
 
-This repository contains different tools written in `python3` to examine properties of firmware binaries provided by Frontier Silicon (former Frontier Smart - FS) and to interact with the inbuild API. The decompiler used here was forked initially from the [dead0007](https://github.com/molnarg/dead0007/blob/master/README.md) repository.
+This repository contains different tools written in `python3` to examine properties of firmware binaries provided by Frontier Smart (former Frontier Silicon - FS) and to interact with the inbuild API. The decompiler used here was forked initially from the [dead0007](https://github.com/molnarg/dead0007/blob/master/README.md) repository.
 
 Allthough there are some repositories that focus on that specific API, the implementation provided here contains all available `Nodes` that were invented/developed by Frontier Smart. The nodes were converted from `java` source code (The [Tool](apk/node_converter.py) is also in this repository).
 
@@ -43,7 +43,7 @@ In order to use the tools provided by this repository, almost all available firm
 ---
 ## Documents
 
-A detailed review of the firmware binaries that are used to update Frontier Silicon devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Silicon is described here: [frontier-smart-api documentation](https://frontier-smart-api.readthedocs.io/). For decompiling the ECMAScript
+A detailed review of the firmware binaries that are used to update Frontier Smart devicesis provided in the following document: [`firmware-2.0`](docs/firmware-2.0.md). The FSAPI (NetRemoteApi) by Frontier-Smart is described here: [frontier-smart-api documentation](https://frontier-smart-api.readthedocs.io/). For decompiling the ECMAScript
 
 **Important Notice**: The `fisu` module is deprecated and should not be used. All functionalities were ported to the `isu` sub-module of `fsapi`. Usage information and examples are given in the [fsapi.isu](https://frontier-smart-api.readthedocs.io/en/latest/api/isu/) documentation.
 
@@ -115,7 +115,7 @@ The firmware binaries are located at the second URL with the mandatory parameter
 > ir-mmi-FS2026-0500-0549_V2.12.25c.EX72088-1A12
 ```
 
-Note that the file name in the URL replaces the `_V` with a simple dot. To download an update file, you can use the `fsapi_tool` or execute the `fsapi` module directly. The following command collects all firmware binaries specified in the given file.
+Note that the file name in the URL replaces the `_V` with a simple dot. To download an update file, you can use the `fsapi` module directly. The following command collects all firmware binaries specified in the given file.
 
 ```bash
 $ python3 -m fsapi isu --file ./bin/updates.txt --verbose
