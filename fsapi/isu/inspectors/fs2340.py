@@ -61,7 +61,7 @@ class FS2340CUIInspector(ISUInspector):
       return header
     
     index += 4
-    header.meos_version = to_ui32(buffer, index)
+    header._meos_version = to_ui32(buffer, index)
     if verbose:
       print("  - MeOS Version: %d" % (header.meos_version))
 
