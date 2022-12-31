@@ -23,17 +23,17 @@ import argparse
 import os
 import re
 
-from fsapi import all as fsapi
+from . import all as fsapi
 from json import dump
 from time import sleep, time
 
 RE_IPV4 = r"^\d{1,3}(.\d{1,3}){3}$"
 
 __BANNER__ = """\
-             __ __ _  _ ___
-            |_ (_ |_||_) | 
-            |  __)| ||  _|_
-───────────────────────────────────────
+                         __ __ _  _ ___
+                        |_ (_ |_||_) | 
+                        |  __)| ||  _|_
+───────────────────────────────────────────────────────────────
 """
 
 def delegate_explore(args: dict, radio: fsapi.RadioHttp):
@@ -82,9 +82,8 @@ def delegate_isu(args: dict, radio: fsapi.RadioHttp):
     if not result or not result['update_present']:
       print('\n[+] Generating current URL...')
       sleep(1)
-      url = 'https://%s/Update.aspx?f=/updates/%s.isu.bin' % (
-        fsapi.ISU_FILE_PROVIDER_HOST, version.replace('_V', '.')
-      )
+      # This generation algorithm should return the right download URL
+      url = fsapi.isu_new_url(version)
       print("     - url:", url)
     else:
       sleep(1)
@@ -104,7 +103,7 @@ def delegate_isu(args: dict, radio: fsapi.RadioHttp):
     if verbose: print('\n[+] Downloading updates located in file: %s' % path)
     
     try: os.mkdir('isu-download')
-    except: pass
+    except Exception: pass
     
     for _firmware in open(path, 'r').read().split('\n'):
       if not _firmware: continue
@@ -131,12 +130,15 @@ def delegate_get(args: dict, radio: fsapi.RadioHttp):
 
   result = fsapi.netremote_request(fsapi.GET, node_types[node], radio)
   if result:
-    print("[+] fsapiResponse of %s:" % node)
-    print('     - status: %s' % (result.status))
+    print_result(node, result)
     if result.status == 'FS_OK':
       print('     - value: %s' % (result.content.value))
       print('     - readonly: %s' % result.content.is_readonly())
       print('     - notifying: %s' % result.content.is_notifying())
+
+def print_result(node, result):
+    print("[+] fsapiResponse of %s:" % node)
+    print('     - status: %s' % (result.status))
 
 def delegate_set(args: dict, radio: fsapi.RadioHttp):
   node_types = fsapi.get_all_node_types()
@@ -173,8 +175,7 @@ def delegate_list(args: dict, radio: fsapi.RadioHttp):
     
     result = fsapi.netremote_request(fsapi.LIST_GET_NEXT, node_types[node], radio, parameters=params)
     if result:
-      print("[+] fsapiResponse of %s:" % node)
-      print('     - status: %s' % (result.status))
+      print_result(node, result)
       if result.status == 'FS_OK':
         result_list: fsapi.NodeList = result.content
         print('     - list: size=%d' % (result_list.size()))

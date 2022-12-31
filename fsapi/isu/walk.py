@@ -138,7 +138,7 @@ class ISUPartition:
     elif self.partition == 2:
       return ISUPartition.PT_20_CRC
     else:
-      return ()
+      return frozenset()
   
   def is_web_partition(self) -> bool:
     return self.partition == 2

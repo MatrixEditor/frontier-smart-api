@@ -46,16 +46,16 @@ class FSNetConfiguration:
   def delegate_request(self, method: str, url: str, headers: dict = None,
                        fields: dict = None,
                        **kwargs) -> urllib3.HTTPResponse:
-    pool = (self.http_pool if self.should_use_http() else (
-      self.https_pool if self.should_use_https() else (
-        self.proxy_manager if self.should_use_proxy() else None
-      )
-    ))
+    pool = self.http_pool 
     if self.should_use_https():
-      if 'https' not in url: url = url.replace('http', 'https')
+      pool = self.https_pool
+    elif self.should_use_proxy():
+      pool = self.proxy_manager
+    
+    if self.should_use_https() and 'https' not in url: url = url.replace('http', 'https')
 
     if not pool: 
-      raise Exception('Invalid pool option: missing pool object')
+      raise ValueError('Invalid pool option: missing pool object')
 
     if self.use_custom_headers():
       headers = self.headers
