@@ -61,6 +61,13 @@ named ``loadxml()``. Note that the XMLElement always needs to be the root elemen
 
 from xml.etree import ElementTree as xmltree
 
+__all__ = [
+"ARG_TYPE_C", "ARG_TYPE_E8", "ARG_TYPE_U8", "ARG_TYPE_U16", "ARG_TYPE_U32", "ARG_TYPE_S8", 
+"ARG_TYPE_S16", "ARG_TYPE_S32", "ARG_TYPE_U", "NodeArg", "NodePrototype", "NodeInfo", 
+"NodeInteger", "NodeS8", "NodeS16", "NodeS32", "NodeU8", "NodeU16", "NodeU32", "NodeE8",
+"NodeC", "NodeU", "NodeListItem", "NodeList", 
+]
+
 ARG_TYPE_C: int = 0x10
 '''C8-Array (char array)'''
 ARG_TYPE_E8: int = 0x11
@@ -145,6 +152,7 @@ class NodeInfo:
     pass
 
   def update(self):
+    '''@Deprecated'''
     pass
 
 class NodeInteger(NodeInfo):
@@ -225,7 +233,6 @@ class NodeListItem:
 
   def loadxml(self, element: xmltree.Element):
     key = element.get('key', None)
-    # if not key: raise error
     self.attr['key'] = key
     for field_node in element.findall('field'):
       self.attr[field_node.attrib['name']] = field_node[0].text

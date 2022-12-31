@@ -46,7 +46,6 @@ __all__ = [
 
 ISU_FILE_PROVIDER_HOST = 'update.wifiradiofrontier.com'
 ISU_EDGE_PROVIDER_HOST = 'nuv-isu-cdn.azureedge.net'
-# https://nuv-isu-cdn.azureedge.net/srupdates/srupdates/ir-cui-FS2340-0000-0146/ir-cui-FS2340-0000-0146_V4.5.13.707296-1A20.isu.bin
 ISU_REQUEST_HEADERS = {
   'User-Agent': "FSL IR/0.1",
   'Connection': "Close"
@@ -143,18 +142,19 @@ def isu_find_update(mac: str, customisation: str, version: str,
                 'updates': list[ISUSoftwareElement]
               }
   '''
-  
+
+  result = {'update_present': False, 'headers': None, 'updates': []}
   if not re.match(RE_FSIR_MAC_ADDR, mac):
     if verbose: print("[-] Failed to find an update: malformed MAC-Address")
-    return None
+    return result
   
   if not re.match(RE_FS_CUSTOMISATION, customisation):
     if verbose: print("[-] Failed to find an update: malformed customisation string")
-    return None
+    return result
 
   if not re.match(RE_FS_VERSION, version):
     if verbose: print("[-] Failed to find an update: malformed version string")
-    return None
+    return result
 
   url = _url_find_update_add_parameters('https://' + ISU_FILE_PROVIDER_HOST, {
     'mac': mac,
@@ -170,26 +170,25 @@ def isu_find_update(mac: str, customisation: str, version: str,
     response = pool.request('GET', url)
     pool.close()
 
-  values = {'update_present': False}
   if response.status == 404:
     if verbose: print("[-] Update not found: invalid version or customisation")
-    return None
+    return result
   elif response.status == 304:
     if verbose: print("[-] No Update available for: ", customisation)
-    return values
+    return result
   
   if response.status != 200:
     if verbose: print("[-] Unexpected result code:", response.status)
-    return values
+    return result
   else:
     try:
-      values['headers'] = response.headers
+      result['headers'] = response.headers
       content = str(response.data, 'utf-8')
 
       pos = content.find('<?xml')
       if pos == -1:
         if verbose: print("[-] Unexpected result: XML-Content missing")
-        return values
+        return result
       else:
         content = content[pos:pos+content.find('</updates>', pos)+9]
         root = xmltree.fromstring(content)
@@ -199,12 +198,12 @@ def isu_find_update(mac: str, customisation: str, version: str,
           s.loadxml(software)
           updates.append(s)
 
-        values['updates'] = updates
-        values['update_present'] = True
-        return values
+        result['updates'] = updates
+        result['update_present'] = True
+        return result
     except Exception as e:
       if verbose: print("[-] Error while parsing response: %s" % e)
-      return values
+      return result
 
 def isu_get_update(path: str, url: str = None, software: ISUSoftwareElement = None,
                    verbose: bool = False,
@@ -230,7 +229,6 @@ def isu_get_update(path: str, url: str = None, software: ISUSoftwareElement = No
     response = netconfig.delegate_request('GET', url, ISU_REQUEST_HEADERS, preload_content=False)
     response.chunked
   else:
-    # manager = urllib3.PoolManager(headers=ISU_REQUEST_HEADERS, timeout=5)
     if 'https' not in url: url = url.replace('http', 'https')
     pool = urllib3.HTTPSConnectionPool(host=url.split("/")[2], headers=ISU_REQUEST_HEADERS, timeout=5)
     response = pool.request('GET', url, preload_content=False)
@@ -243,8 +241,8 @@ def isu_get_update(path: str, url: str = None, software: ISUSoftwareElement = No
     with open(path, 'wb') as _res:
       for chunk in response.stream(4096*16):
         if chunk: _res.write(chunk)
-  except:
-    print('[-] TImeout Error...')
+  except TimeoutError:
+    print('[-] Timeout Error...')
   response.release_conn()
 
 def isu_new_url(name: str) -> str:

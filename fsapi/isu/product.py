@@ -100,17 +100,17 @@ FSVERSION_MODULE_TYPES = {
 
 class FSCustomisation:
   def __init__(self) -> None:
-    self.device_type: str = None
-    self.type_spec: str = None
-    self.interface: str = None
+    self.device_type: str = ''
+    self.type_spec: str = ''
+    self.interface: str = ''
     self.interface_sub_types: list = []
-    self.module_type: str = None
-    self.module_version: str = None
-    self.product: str = None
-    self.spec: str = None
-    self.repr: str = None
+    self.module_type: str = ''
+    self.module_version: str = ''
+    self.product: str = ''
+    self.spec: str = ''
+    self.repr: str = ''
 
-  def loads(self, buffer: str, verbose: bool = False):
+  def loads(self, buffer: str):
     if not buffer:
       return
     
@@ -166,7 +166,6 @@ class FSVersion:
     self.sdk_version = 'IR' + self.firmware_version + ' SDK'
     temp = buffer[index+1:]
     self.revision = temp[2:7]
-    #self.branch = temp[temp.index('-')+1:]
     self.repr = buffer
 
   def __str__(self) -> str:

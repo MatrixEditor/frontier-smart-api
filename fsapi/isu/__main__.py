@@ -44,6 +44,9 @@ __BANNER__ = """\
 
 ALLOWED_SUFFIXES = ('isu.bin', 'ota.bin')
 
+ERR_FATAL = 'ERROR - FATAL: '
+ERR_INFO = 'ERROR - INFO: '
+
 ################################################################################
 # ISU-Inspector::functions
 ################################################################################
@@ -58,8 +61,8 @@ def parse_header(fp: ISUFile, inspector: ISUInspector, root: FSFSFile = None,
         'customisation': str(header.customisation)
       }))
     sleep(1)
-  except UnsupportedOperation or NotImplementedError as e:
-    print('ERROR - FATAL: ', str(e))
+  except NotImplementedError as e:
+    print(ERR_INFO, str(e))
 
   try: # read and print partitions
     partitions = inspector.get_partitions(fp, verbose=verbose)
@@ -73,8 +76,10 @@ def parse_header(fp: ISUFile, inspector: ISUInspector, root: FSFSFile = None,
         }))
       root.append(p_e)
     sleep(1)
-  except UnsupportedOperation or NotImplementedError as e:
-    print('ERROR - FATAL: ', str(e))
+  except NotImplementedError as e:
+    print(ERR_INFO, str(e))
+  except UnsupportedOperation as ioe:
+    print(ERR_FATAL, str(ioe))
 
   try: # read and print uboot
     if type(inspector) == OtaIspector:
@@ -85,8 +90,10 @@ def parse_header(fp: ISUFile, inspector: ISUInspector, root: FSFSFile = None,
         p_e = FSFSFile('uboot', attributes=config)
         root.append(p_e)
       sleep(1)
-  except UnsupportedOperation or NotImplementedError as e:
-    print('ERROR - FATAL: ', str(e))
+  except NotImplementedError as e:
+    print(ERR_INFO, str(e))
+  except UnsupportedOperation as ioe:
+    print(ERR_FATAL, str(ioe))
 
   try: # read and print compression/decompression fields
     fields = inspector.get_compression_fields(fp, verbose=verbose)
@@ -96,8 +103,10 @@ def parse_header(fp: ISUFile, inspector: ISUInspector, root: FSFSFile = None,
         p_e.append(FSFSFile(field.name, {'size': field.size}))
       root.append(p_e)
     sleep(1)
-  except UnsupportedOperation or NotImplementedError as e:
-    print('ERROR - FATAL: ', str(e))
+  except NotImplementedError as e:
+    print(ERR_INFO, str(e))
+  except UnsupportedOperation as ioe:
+    print(ERR_FATAL, str(ioe))
 
 def parse_directory_archive(fp: ISUFile, inspector: ISUInspector, 
                             root: FSFSFile = None, verbose: bool = False):
@@ -106,13 +115,11 @@ def parse_directory_archive(fp: ISUFile, inspector: ISUInspector,
     if tree is not None:
       root.append(tree)
   except UnsupportedOperation or NotImplementedError as e:
-    print('ERROR - FATAL:', str(e))
+    print(ERR_FATAL, str(e))
 
 def save_dir_entry(root: FSFSFile, buffer: bytes, path: str, start: int):
   name = root.get_attribute('name')
   if root.get_attribute('type') == 0x00: # file
-    compressed = root.get_attribute('compressed') == 'True'
-    #if compressed: name += '.zlib'
     with open(path + name, 'wb') as res:
       off = start + root.get_attribute('offset')
       if root.get_attribute('compressed') == 'True':
@@ -124,7 +131,7 @@ def save_dir_entry(root: FSFSFile, buffer: bytes, path: str, start: int):
   else:
     if name == 'root': name = 'fsh1'
     try: os.mkdir(path + name)
-    except: pass
+    except OSError: pass
     for element in root:
       save_dir_entry(element, buffer, path + name + '/', start)
 
@@ -166,7 +173,7 @@ def extract_bytes(fp: ISUFile, root: FSFSFile, nspace: dict) -> None:
       if fsh is not None:
         path = '_%s.extracted/' % path
         try: os.mkdir(path) 
-        except: pass
+        except OSError: pass
       
         for element in fsh:
           save_dir_entry(element, fp._file, path, start=fsh.get_attribute('offset'))
